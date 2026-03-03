@@ -72,13 +72,8 @@ def sell_options(message):
 def buy_closed(message):
     menu = ReplyKeyboardMarkup(resize_keyboard=True, row_width=2)
     menu.add(KeyboardButton("🔙 Back"))
-
-@bot.message_handler(func=lambda msg: msg.text == "🔙 Back")
-def back(message):
-    buy_sell_menu(message)
-
+  
     bot.send_message(message.chat.id, "আপনার ডলার কোথায় আছে সিলেক্ট করুন:", reply_markup=inline)
-
 
 # ================== INLINE HANDLER ==================
 @bot.callback_query_handler(func=lambda call: True)
