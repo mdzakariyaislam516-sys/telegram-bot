@@ -79,7 +79,7 @@ def sell_options(message):
         InlineKeyboardButton("Xrocket", callback_data="xrocket")
     )
 
-    bot.send_message(message.chat.id, "👇 নিচের অপশন থেকে নির্বাচন করুন:", reply_markup=inline)
+    bot.send_message(message.chat.id, "👇 নিচের অপশন থেকে যেকোনো একটি নির্বাচন করুন:", reply_markup=inline)
 
 
 # ================== INLINE HANDLER ==================
@@ -160,7 +160,7 @@ def calculate_amount(message):
 
     bot.send_message(
         cid,
-        f"নিচের UID তে ডলার পাঠান:\n\n{uid}\n\nএরপর স্ক্রিনশট সেন্ড করুন।",
+        f"নিচের UID তে ডলার পাঠান:\n\n{uid}\n\nএরপর স্ক্রিনশট পাঠান।",
         parse_mode="Markdown"
     )
 
