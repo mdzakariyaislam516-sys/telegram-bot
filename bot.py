@@ -35,7 +35,7 @@ def buy_sell_menu(message):
     b1 = KeyboardButton("ডলার কিনতে চাই")
     b2 = KeyboardButton("ডলার বিক্রি করতে চাই")
     menu.add(b1, b2)
-    bot.send_message(message.chat.id, "নিচের অপশন নির্বাচন করুন:", reply_markup=menu)
+    bot.send_message(message.chat.id, "নিচের যেকোনো একটি অপশন নির্বাচন করুন:", reply_markup=menu)
 
 
 @bot.message_handler(func=lambda msg: msg.text == "ডলার কিনতে চাই")
@@ -44,7 +44,7 @@ def buy_closed(message):
     menu.add(KeyboardButton("🔙 Back"), KeyboardButton("🏠 Main Menu"))
     bot.send_message(
         message.chat.id,
-        "বর্তমানে ডলার ক্রয় বন্ধ আছে 💔\nআপনি চাইলে ডলার বিক্রয় করতে পারেন।",
+        "বর্তমানে বট থেকে ডলার ক্রয় বন্ধ আছে 💔\nআপনি চাইলে ডলার বিক্রয় করতে পারেন।",
         reply_markup=menu
     )
 
@@ -89,7 +89,7 @@ def callback_handler(call):
 
     # ============= XROCKET =============
     if call.data == "xrocket":
-        bot.send_message(cid, "Xrocket বটের ডলার sell করার জন্য সরাসরি এডমিনের সাথে যোগাযোগ করুন:\n@Online_Jobs_24hours")
+        bot.send_message(cid, "Xrocket sell করার জন্য যোগাযোগ করুন:\n@Online_Jobs_24hours")
         return
 
     # ============= CHOOSE METHOD =============
@@ -101,7 +101,7 @@ def callback_handler(call):
 
         bot.send_message(
             cid,
-            "আপনার ডলারের পরিমাণ লিখুন।\n\n⚠️ 3.5 ডলারের নিচে যেকোনো এমাউন্ট 1$= 122 টাকা করে হিসাব হবে।\n⚠️ 3.5 এর বেশি হলে 123 টাকা করে হিসাব হবে।",
+            "👉আপনার ডলারের সঠিক পরিমাণ লিখুন।যেমনঃ 0.3, 0.05, 1, 2 ইত্যাদি শুধুমাত্র সংখ্যা লিখবেন\n\n⚠️ 3.5 ডলারের নিচে যেকোনো এমাউন্ট 122 টাকা করে হিসাব হবে।\n⚠️ 3.5 এর বেশি হলে 123 টাকা করে হিসাব হবে।",
             reply_markup=reply
         )
         bot.register_next_step_handler_by_chat_id(cid, calculate_amount)
@@ -133,7 +133,7 @@ def calculate_amount(message):
     try:
         amount = float(message.text)
     except:
-        bot.send_message(cid, " আপনার ডলারের সঠিক এমাউন্ট লিখুন! যেমন: 0.3, 0.4, 1, 2 ইত্যাদি শুধু সংখ্যা লিখবেন")
+        bot.send_message(cid, "সঠিক সংখ্যা লিখুন!")
         bot.register_next_step_handler_by_chat_id(cid, calculate_amount)
         return
 
@@ -145,7 +145,7 @@ def calculate_amount(message):
     user_rate[cid] = rate
     user_total[cid] = total
 
-    bot.send_message(cid, f"আপনার টাকার পরিমাণ: **{total} টাকা**", parse_mode="Markdown")
+    bot.send_message(cid, f"আপনার প্রাপ্ত টাকা হবে: **{total} টাকা**", parse_mode="Markdown")
 
     method = pending_amount.get(cid)
 
@@ -160,7 +160,7 @@ def calculate_amount(message):
 
     bot.send_message(
         cid,
-        f"নিচের UID তে আপনার ডলার পাঠান:\n\n{uid}\n\nএরপর স্ক্রিনশট সেন্ড করুন।",
+        f"নিচের UID তে ডলার পাঠান:\n\n{uid}\n\nএরপর স্ক্রিনশট পাঠান।",
         parse_mode="Markdown"
     )
 
@@ -206,7 +206,7 @@ def receive_screenshot(message):
         InlineKeyboardButton("রকেট", callback_data="pm_roket")
     )
 
-    bot.send_message(message.chat.id, "আপনি কিসে পেমেন্ট নিতে চান?", reply_markup=inline)
+    bot.send_message(message.chat.id, "আপনি কিসের মাধ্যমে পেমেন্ট নিতে চান?", reply_markup=inline)
 
 
 # ================== SAVE PAYMENT NUMBERS ==================
@@ -252,7 +252,7 @@ def support(message):
 
 @bot.message_handler(func=lambda msg: msg.text == "📢 Support Channel")
 def channel(message):
-    bot.send_message(message.chat.id, "আমাদের সাপোর্ট চ্যানেল🥰 জয়েন করতে ভুলবেন না। আশা করি সব সময় সাপোর্ট দিয়ে পাশে থাকবেন🥰: https://t.me/Online_small_jobs")
+    bot.send_message(message.chat.id, "আমাদের সাপোর্ট চ্যানেল🥰 জয়েন করতে ভুলবেন না। আশা করি সব সময় সাপোর্ট দিয়ে পাশে থাকবেন। ধন্যবাদ🥰🥀: https://t.me/Online_small_jobs")
 
 
 # ================== RUN BOT ==================
