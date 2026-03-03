@@ -145,7 +145,7 @@ def calculate_amount(message):
     user_rate[cid] = rate
     user_total[cid] = total
 
-    bot.send_message(cid, f"আপনার প্রাপ্ত টাকা হবে: **{total} টাকা**", parse_mode="Markdown")
+    bot.send_message(cid, f"আপনার টাকার পরিমাণ হলো: **{total} টাকা**", parse_mode="Markdown")
 
     method = pending_amount.get(cid)
 
@@ -160,7 +160,7 @@ def calculate_amount(message):
 
     bot.send_message(
         cid,
-        f"নিচের UID তে ডলার পাঠান:\n\n{uid}\n\nএরপর স্ক্রিনশট পাঠান।",
+        f"নিচের UID তে ডলার পাঠান:\n\n{uid}\n\nএরপর স্ক্রিনশট সেন্ড করুন।",
         parse_mode="Markdown"
     )
 
