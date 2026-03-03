@@ -65,8 +65,17 @@ def sell_options(message):
     )
     inline.add(
         InlineKeyboardButton("Bitget", callback_data="bitget"),
-        InlineKeyboardButton("রকেট", callback_data="xrocket")
+        InlineKeyboardButton("xrocket", callback_data="xrocket")
     )
+
+@bot.message_handler(func=lambda msg: msg.text == "ডলার বিক্রি করতে চাই")
+def buy_closed(message):
+    menu = ReplyKeyboardMarkup(resize_keyboard=True, row_width=2)
+    menu.add(KeyboardButton("🔙 Back"))
+
+@bot.message_handler(func=lambda msg: msg.text == "🔙 Back")
+def back(message):
+    buy_sell_menu(message)
 
     bot.send_message(message.chat.id, "আপনার ডলার কোথায় আছে সিলেক্ট করুন:", reply_markup=inline)
 
