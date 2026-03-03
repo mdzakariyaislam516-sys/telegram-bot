@@ -3,9 +3,11 @@ from telebot.types import ReplyKeyboardMarkup, KeyboardButton, InlineKeyboardMar
 
 # ================== CONFIG ==================
 TOKEN = "8657812226:AAEMVD7GrSZSTuK91tr-zHAlz0vyGMcGuz0"
-ADMIN_GROUP = -1003058363661   # এখানে তোমার গ্রুপ ID বসবে
+ADMIN_GROUP = -1003058363661
 
 bot = telebot.TeleBot(TOKEN)
+
+pending_amount = {}   # user → which method they selected (binance/bybit/bitget)
 
 
 # ================== MAIN MENU ==================
@@ -40,7 +42,7 @@ def buy_closed(message):
 
     bot.send_message(
         message.chat.id,
-        "বর্তমানে ডলার ক্রয় বন্ধ আছে 💔\nআপনি চাইলে ডলার বিক্রয় করতে পারেন।",
+        "বর্তমানে বট থেকে ডলার ক্রয় বন্ধ আছে 💔\nআপনি চাইলে ডলার বিক্রয় করতে পারেন। ধন্যবাদ🥀",
         reply_markup=menu
     )
 
@@ -58,6 +60,10 @@ def home(message):
 # ================== SELL OPTIONS ==================
 @bot.message_handler(func=lambda msg: msg.text == "ডলার বিক্রি করতে চাই")
 def sell_options(message):
+    menu = ReplyKeyboardMarkup(resize_keyboard=True)
+    back_btn = KeyboardButton("🏠 Main Menu")
+    menu.add(back_btn)
+
     inline = InlineKeyboardMarkup()
     inline.add(
         InlineKeyboardButton("Binance", callback_data="binance"),
@@ -65,64 +71,100 @@ def sell_options(message):
     )
     inline.add(
         InlineKeyboardButton("Bitget", callback_data="bitget"),
-        InlineKeyboardButton("xrocket", callback_data="xrocket")
+        InlineKeyboardButton("Xrocket", callback_data="xrocket")
     )
 
-@bot.message_handler(func=lambda msg: msg.text == "ডলার বিক্রি করতে চাই")
-def sell_options(message):
-    menu = ReplyKeyboardMarkup(resize_keyboard=True, row_width=2)
-    menu.add(KeyboardButton("🔙 Back"))
-  
     bot.send_message(message.chat.id, "আপনার ডলার কোথায় আছে সিলেক্ট করুন:", reply_markup=inline)
+
 
 # ================== INLINE HANDLER ==================
 @bot.callback_query_handler(func=lambda call: True)
 def callback_handler(call):
-    chat_id = call.message.chat.id
+    cid = call.message.chat.id
 
-    # ------- BINANCE -------
-    if call.data == "binance":
+    # ============= XROCKET =============
+    if call.data == "xrocket":
+        bot.send_message(cid, "Xrocket ডলার sell করার জন্য সরাসরি এডমিনের সাথে যোগাযোগ করুন:\n@Online_Jobs_24hours")
+        return
+
+    # ============= AMOUNT INPUT STAGE =============
+    if call.data in ["binance", "bybit", "bitget"]:
+        pending_amount[cid] = call.data  # store selected method
+
+        menu = ReplyKeyboardMarkup(resize_keyboard=True)
+        menu.add(KeyboardButton("🔙 Back"))
+
         bot.send_message(
-            chat_id,
-            "নিম্নোক্ত Binance UID তে ডলার পাঠান:\n\n`Binance UID: 774896980`\n\nসেন্ড করে স্ক্রিনশট পাঠান।",
-            parse_mode="Markdown"
+            cid,
+            "আপনার ডলারের পরিমাণ লিখুন।\n\n⚠️ 3.5 ডলারের নিচে যেকোনো এমাউন্ট 1$= 122 টাকা করে হিসাব করা হবে।\n⚠️ 3.5 এর বেশি হলে 123 টাকা করে হিসাব করা হবে।",
+            reply_markup=menu
         )
-        bot.register_next_step_handler_by_chat_id(chat_id, receive_screenshot)
+        bot.register_next_step_handler_by_chat_id(cid, calculate_amount)
+        return
 
-    # ------- BYBIT -------
-    elif call.data == "bybit":
-        bot.send_message(
-            chat_id,
-            "Bybit UID:\n\n`510385821`\n\nসেন্ড করে স্ক্রিনশট পাঠান।",
-            parse_mode="Markdown"
-        )
-        bot.register_next_step_handler_by_chat_id(chat_id, receive_screenshot)
-
-    # ------- BITGET -------
-    elif call.data == "bitget":
-        bot.send_message(
-            chat_id,
-            "Bitget UID:\n\n`4952119040`\n\nসেন্ড করে স্ক্রিনশট পাঠান।",
-            parse_mode="Markdown"
-        )
-        bot.register_next_step_handler_by_chat_id(chat_id, receive_screenshot)
-
-    # ------- XROCKET -------
-    elif call.data == "xrocket":
-        bot.send_message(chat_id, "Xrocket sell করার জন্য যোগাযোগ করুন:\n@Online_Jobs_24hours")
-
-    # ------- PAYMENT METHODS -------
-    elif call.data == "pm_bkash":
-        bot.send_message(chat_id, "আপনার বিকাশ নাম্বারটি লিখুনঃ")
-        bot.register_next_step_handler_by_chat_id(chat_id, save_bkash)
+    # ============= PAYMENT OPTIONS (OLD PART) =============
+    if call.data == "pm_bkash":
+        bot.send_message(cid, "আপনার বিকাশ নাম্বারটি লিখুনঃ")
+        bot.register_next_step_handler_by_chat_id(cid, save_bkash)
 
     elif call.data == "pm_nagad":
-        bot.send_message(chat_id, "আপনার নগদ নাম্বারটি লিখুনঃ")
-        bot.register_next_step_handler_by_chat_id(chat_id, save_nagad)
+        bot.send_message(cid, "আপনার নগদ নাম্বারটি লিখুনঃ")
+        bot.register_next_step_handler_by_chat_id(cid, save_nagad)
 
     elif call.data == "pm_roket":
-        bot.send_message(chat_id, "আপনার রকেট নাম্বারটি লিখুনঃ")
-        bot.register_next_step_handler_by_chat_id(chat_id, save_roket)
+        bot.send_message(cid, "আপনার রকেট নাম্বারটি লিখুনঃ")
+        bot.register_next_step_handler_by_chat_id(cid, save_roket)
+
+
+# ================== CALCULATE AMOUNT ==================
+def calculate_amount(message):
+    cid = message.chat.id
+
+    if message.text == "🔙 Back":
+        sell_options(message)
+        return
+
+    try:
+        amount = float(message.text)
+    except:
+        bot.send_message(cid, "সঠিক সংখ্যা লিখুন!")
+        bot.register_next_step_handler_by_chat_id(cid, calculate_amount)
+        return
+
+    # Calculation
+    rate = 122 if amount < 3.5 else 123
+    total = amount * rate
+
+    bot.send_message(cid, f"আপনার প্রাপ্ত টাকা হবে: **{total} টাকা**", parse_mode="Markdown")
+
+    # Now show correct UID depending on selected method
+    method = pending_amount.get(cid)
+
+    if method == "binance":
+        uid = "Binance UID: 774896980"
+    elif method == "bybit":
+        uid = "Bybit UID: 510385821"
+    elif method == "bitget":
+        uid = "Bitget UID: 4952119040"
+    else:
+        uid = "Unknown Method"
+
+    # Ask screenshot
+    inline = InlineKeyboardMarkup()
+    inline.add(
+        InlineKeyboardButton("বিকাশ", callback_data="pm_bkash"),
+        InlineKeyboardButton("নগদ", callback_data="pm_nagad"),
+        InlineKeyboardButton("রকেট", callback_data="pm_roket")
+    )
+
+    bot.send_message(
+        cid,
+        f"নিম্নোক্ত UID তে ডলার পাঠান:\n\n`{uid}`\n\nএরপর স্ক্রিনশট পাঠান।",
+        parse_mode="Markdown"
+    )
+
+    bot.send_message(cid, "স্ক্রিনশট পাঠান:", reply_markup=InlineKeyboardMarkup())
+    bot.register_next_step_handler_by_chat_id(cid, receive_screenshot)
 
 
 # ================== RECEIVE SCREENSHOT ==================
@@ -133,10 +175,8 @@ def receive_screenshot(message):
         bot.register_next_step_handler_by_chat_id(message.chat.id, receive_screenshot)
         return
 
-    # Forward to admin group
     bot.forward_message(ADMIN_GROUP, message.chat.id, message.message_id)
 
-    # Ask for payment method
     inline = InlineKeyboardMarkup()
     inline.add(
         InlineKeyboardButton("বিকাশ", callback_data="pm_bkash"),
@@ -144,11 +184,7 @@ def receive_screenshot(message):
         InlineKeyboardButton("রকেট", callback_data="pm_roket")
     )
 
-    bot.send_message(
-        message.chat.id,
-        "আপনি কিসে পেমেন্ট নিতে চান?",
-        reply_markup=inline
-    )
+    bot.send_message(message.chat.id, "আপনি কিসে পেমেন্ট নিতে চান?", reply_markup=inline)
 
 
 # ================== SAVE PAYMENT NUMBERS ==================
@@ -171,9 +207,7 @@ def save_roket(message):
 def confirm_done(message):
     bot.send_message(
         message.chat.id,
-        "আপনার রিকুয়েস্টটি সঠিকভাবে গ্রহণ করা হয়েছে।\n"
-        "অনুগ্রহ করে অপেক্ষা করুন।\n"
-        "১০ মিনিটের মধ্যে পেমেন্ট না পেলে সাপোর্টে যোগাযোগ করুন।"
+        "আপনার রিকুয়েস্টটি সঠিকভাবে গ্রহণ করা হয়েছে।\nঅনুগ্রহ করে অপেক্ষা করুন।\n১০ মিনিটের মধ্যে পেমেন্ট না পেলে সাপোর্টে যোগাযোগ করুন।"
     )
     main_menu(message.chat.id)
 
@@ -191,7 +225,7 @@ def admin_reply(message):
         )
 
 
-# ================== SUPPORT BUTTONS ==================
+# ================== SUPPORT ==================
 @bot.message_handler(func=lambda msg: msg.text == "🧑‍💻 Support")
 def support(message):
     bot.send_message(message.chat.id, "সাপোর্ট: @Online_Jobs_24hours")
