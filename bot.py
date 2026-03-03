@@ -7,7 +7,10 @@ ADMIN_GROUP = -1003058363661
 
 bot = telebot.TeleBot(TOKEN)
 
-pending_amount = {}   # user → binance/bybit/bitget
+pending_amount = {}    # user → binance/bybit/bitget
+user_amount = {}       # user → amount
+user_rate = {}         # user → rate (122/123)
+user_total = {}        # user → total
 
 
 # ================== MAIN MENU ==================
@@ -60,7 +63,7 @@ def home(message):
 @bot.message_handler(func=lambda msg: msg.text == "ডলার বিক্রি করতে চাই")
 def sell_options(message):
 
-    # Reply keyboard (BACK)
+    # reply keyboard
     reply = ReplyKeyboardMarkup(resize_keyboard=True)
     reply.add(KeyboardButton("🔙 Back"))
 
@@ -86,7 +89,7 @@ def callback_handler(call):
 
     # ============= XROCKET =============
     if call.data == "xrocket":
-        bot.send_message(cid, "Xrocket ডলার sell করার জন্য সরাসরি এডমিনের সঙ্গে যোগাযোগ করুন:\n@Online_Jobs_24hours")
+        bot.send_message(cid, "Xrocket বটের ডলার sell করার জন্য সরাসরি এডমিনের সাথে যোগাযোগ করুন:\n@Online_Jobs_24hours")
         return
 
     # ============= CHOOSE METHOD =============
@@ -98,7 +101,7 @@ def callback_handler(call):
 
         bot.send_message(
             cid,
-            "আপনার ডলারের পরিমাণ লিখুন।\n\n⚠️ 3.5 ডলারের নিচে যেকোনো এমাউন্ট 1$= 122 টাকা করে হিসাব করা হবে।\n⚠️ 3.5 এর বেশি হলে 123 টাকা করে হিসাব করা হবে।",
+            "আপনার ডলারের পরিমাণ লিখুন।\n\n⚠️ 3.5 ডলারের নিচে যেকোনো এমাউন্ট 1$= 122 টাকা করে হিসাব হবে।\n⚠️ 3.5 এর বেশি হলে 123 টাকা করে হিসাব হবে।",
             reply_markup=reply
         )
         bot.register_next_step_handler_by_chat_id(cid, calculate_amount)
@@ -122,7 +125,7 @@ def callback_handler(call):
 def calculate_amount(message):
     cid = message.chat.id
 
-    # Back pressed
+    # Back
     if message.text == "🔙 Back":
         sell_options(message)
         return
@@ -130,14 +133,19 @@ def calculate_amount(message):
     try:
         amount = float(message.text)
     except:
-        bot.send_message(cid, "আপনার ডলারের সঠিক এমাউন্ট লিখুন!")
+        bot.send_message(cid, " আপনার ডলারের সঠিক এমাউন্ট লিখুন! যেমন: 0.3, 0.4, 1, 2 ইত্যাদি শুধু সংখ্যা লিখবেন")
         bot.register_next_step_handler_by_chat_id(cid, calculate_amount)
         return
 
     rate = 122 if amount < 3.5 else 123
     total = amount * rate
 
-    bot.send_message(cid, f"আপনার প্রাপ্ত টাকা হবে: **{total} টাকা**", parse_mode="Markdown")
+    # save
+    user_amount[cid] = amount
+    user_rate[cid] = rate
+    user_total[cid] = total
+
+    bot.send_message(cid, f"আপনার টাকার পরিমাণ: **{total} টাকা**", parse_mode="Markdown")
 
     method = pending_amount.get(cid)
 
@@ -152,7 +160,7 @@ def calculate_amount(message):
 
     bot.send_message(
         cid,
-        f"নিচের UID তে ডলার পাঠান:\n\n{uid}\n\nএরপর স্ক্রিনশট পাঠান।",
+        f"নিচের UID তে আপনার ডলার পাঠান:\n\n{uid}\n\nএরপর স্ক্রিনশট সেন্ড করুন।",
         parse_mode="Markdown"
     )
 
@@ -176,8 +184,21 @@ def receive_screenshot(message):
         bot.register_next_step_handler_by_chat_id(message.chat.id, receive_screenshot)
         return
 
-    bot.forward_message(ADMIN_GROUP, message.chat.id, message.message_id)
+    cid = message.chat.id
 
+    # Forward screenshot
+    bot.forward_message(ADMIN_GROUP, cid, message.message_id)
+
+    # Forward formula
+    amount = user_amount.get(cid)
+    rate = user_rate.get(cid)
+    total = user_total.get(cid)
+
+    if amount is not None:
+        calc_text = f"{amount} * {rate} = {total}"
+        bot.send_message(ADMIN_GROUP, f"📌 হিসাব:\n{calc_text}")
+
+    # Payment options
     inline = InlineKeyboardMarkup()
     inline.add(
         InlineKeyboardButton("বিকাশ", callback_data="pm_bkash"),
@@ -208,7 +229,7 @@ def save_roket(message):
 def confirm_done(message):
     bot.send_message(
         message.chat.id,
-        "আপনার রিকুয়েস্টটি সঠিকভাবে গ্রহণ করা হয়েছে।\nঅনুগ্রহ করে অপেক্ষা করুন।\n১০ মিনিটের মধ্যে পেমেন্ট না পেলে সাপোর্টে যোগাযোগ করুন। ধন্যবাদ🥰🥀"
+        "আপনার রিকুয়েস্টটি সঠিকভাবে গ্রহণ করা হয়েছে।\nঅনুগ্রহ করে অপেক্ষা করুন।\n১০ মিনিটের মধ্যে পেমেন্ট না পেলে সাপোর্টে যোগাযোগ করুন।"
     )
     main_menu(message.chat.id)
 
@@ -231,7 +252,7 @@ def support(message):
 
 @bot.message_handler(func=lambda msg: msg.text == "📢 Support Channel")
 def channel(message):
-    bot.send_message(message.chat.id, "আমাদের সাপোর্ট চ্যানেল🥰 জয়েন করতে ভুলবেন না: https://t.me/Online_small_jobs")
+    bot.send_message(message.chat.id, "আমাদের সাপোর্ট চ্যানেল🥰 জয়েন করতে ভুলবেন না। আশা করি সব সময় সাপোর্ট দিয়ে পাশে থাকবেন🥰: https://t.me/Online_small_jobs")
 
 
 # ================== RUN BOT ==================
