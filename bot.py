@@ -69,7 +69,7 @@ def sell_options(message):
     )
 
 @bot.message_handler(func=lambda msg: msg.text == "ডলার বিক্রি করতে চাই")
-def buy_sell_menu(message):
+def sell_options(message):
     menu = ReplyKeyboardMarkup(resize_keyboard=True, row_width=2)
     menu.add(KeyboardButton("🔙 Back"))
   
