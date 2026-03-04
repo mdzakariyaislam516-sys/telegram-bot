@@ -27,6 +27,7 @@ def main_menu(chat_id):
     btn1 = KeyboardButton("💵 Dollar Buy/Sell")
     btn2 = KeyboardButton("🧑‍💻 Support")
     btn3 = KeyboardButton("📢 Support Channel")
+    btn4 = KeyboardButton("🌟বিকাশ/নগদ পেমেন্ট রুলস")
 
     menu.add(btn1,btn2,btn3)
 
