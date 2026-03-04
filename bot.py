@@ -3,7 +3,7 @@ from telebot.types import ReplyKeyboardMarkup, KeyboardButton, InlineKeyboardMar
 import datetime
 
 # ================== CONFIG ==================
-TOKEN = "YOUR_BOT_TOKEN"
+TOKEN = "8657812226:AAEMVD7GrSZSTuK91tr-zHAlz0vyGMcGuz0"
 ADMIN_GROUP = -1003058363661
 
 bot = telebot.TeleBot(TOKEN)
