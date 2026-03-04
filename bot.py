@@ -133,6 +133,8 @@ def sell_options(message):
 
 # ================== INLINE HANDLER ==================
 @bot.callback_query_handler(func=lambda call: call.data not in ["pm_bkash","pm_nagad","pm_roket"])
+def callback_handler(call):
+
     cid = call.message.chat.id
 
     # ===== PAYMENT DONE =====
