@@ -29,7 +29,7 @@ def main_menu(chat_id):
     btn3 = KeyboardButton("📢 Support Channel")
     btn4 = KeyboardButton("🌟বিকাশ/নগদ পেমেন্ট রুলস")
 
-    menu.add(btn1,btn2,btn3)
+    menu.add(btn1,btn2,btn3,btn4)
 
     bot.send_message(
         chat_id,
