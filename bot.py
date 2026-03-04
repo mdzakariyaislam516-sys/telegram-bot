@@ -52,8 +52,7 @@ def buy_closed(message):
 
 @bot.message_handler(func=lambda msg: msg.text == "🔙 Back")
 def back(message):
-    buy_sell_menu(message)
-
+    main_menu(message.chat.id)
 
 @bot.message_handler(func=lambda msg: msg.text == "🏠 Main Menu")
 def home(message):
