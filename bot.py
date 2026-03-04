@@ -3,7 +3,7 @@ from telebot.types import ReplyKeyboardMarkup, KeyboardButton, InlineKeyboardMar
 import datetime
 
 # ================== CONFIG ==================
-TOKEN = "8657812226:AAEMVD7GrSZSTuK91tr-zHAlz0vyGMcGuz0"
+TOKEN = "YOUR_BOT_TOKEN"
 ADMIN_GROUP = -1003058363661
 
 bot = telebot.TeleBot(TOKEN)
@@ -29,8 +29,9 @@ def main_menu(chat_id):
     btn1 = KeyboardButton("💵 Dollar Buy/Sell")
     btn2 = KeyboardButton("🧑‍💻 Support")
     btn3 = KeyboardButton("📢 Support Channel")
+    btn4 = KeyboardButton("🌟বিকাশ নগদ পেমেন্ট রুলস")
 
-    menu.add(btn1,btn2,btn3)
+    menu.add(btn1,btn2,btn3,btn4)
 
     bot.send_message(chat_id,"আপনি কী করতে চান? নিচের মেনু থেকে নির্বাচন করুন।",reply_markup=menu)
 
@@ -111,6 +112,12 @@ def sell_options(message):
         InlineKeyboardButton("Xrocket",callback_data="xrocket")
     )
 
+    inline.add(
+    InlineKeyboardButton("BEP-20", callback_data="BEP-20"),
+    InlineKeyboardButton("Polygon", callback_data="Polygon")
+)
+
+
     bot.send_message(message.chat.id,"👇 নিচের অপশন থেকে নির্বাচন করুন:",reply_markup=inline)
 
 # ================== INLINE HANDLER ==================
@@ -173,7 +180,7 @@ call.message.message_id
         bot.send_message(cid,"Xrocket ডলার sell করার জন্য সরাসরি এডমিনের সাথে যোগাযোগ করুন:\n@Online_Jobs_24hours")
         return
 
-    if call.data in ["binance","bybit","bitget"]:
+    if call.data in ["binance","bybit","bitget","BEP-20","Polygon"]:
 
         pending_amount[cid] = call.data
         user_stage[cid] = "amount_input"
@@ -218,12 +225,27 @@ def calculate_amount(message):
 
     if method == "binance":
         uid = "`774896980`"
+
     elif method == "bybit":
         uid = "`510385821`"
-    else:
+
+    elif method == "bitget":
         uid = "`4952119040`"
 
-    bot.send_message(cid,f"নিচের UID তে ডলার পাঠান\n\n{uid}\n\nএরপর স্ক্রিনশট পাঠান",parse_mode="Markdown")
+    elif method == "BEP-20":
+        uid = "`0x2afdf7b462397e4a901472763e2848d2b85468f0`"
+
+    elif method == "Polygon":
+        uid = "`0x2afdf7b462397e4a901472763e2848d2b85468f0`"
+
+    else:
+        uid = "`Unknown`"
+
+    bot.send_message(
+        cid,
+        f"নিচের UID তে ডলার পাঠান\n\n{uid}\n\nএরপর স্ক্রিনশট সেন্ড করুন",
+        parse_mode="Markdown"
+    )
 
     reply = ReplyKeyboardMarkup(resize_keyboard=True)
     reply.add(KeyboardButton("🔙 Back"))
@@ -291,6 +313,7 @@ def save_number(message):
     rate = user_rate.get(cid)
     total = user_total.get(cid)
     method = user_method.get(cid)
+    network = pending_amount.get(cid)
 
     user = message.from_user
     username = f"@{user.username}" if user.username else user.first_name
@@ -299,6 +322,7 @@ def save_number(message):
     caption = (
         f"📥 New Sell Request\n\n"
         f"👤 User: {username}\n"
+        f"🌐 Network: {network}\n"
         f"🆔 User ID: {cid}\n\n"
         f"💵 Amount: {amount} USDT\n"
         f"💰 Rate: {rate}\n"
@@ -351,6 +375,11 @@ def support(message):
 @bot.message_handler(func=lambda msg: msg.text == "📢 Support Channel")
 def channel(message):
     bot.send_message(message.chat.id,"সাপোর্ট চ্যানেল: https://t.me/Online_small_jobs")
+
+@bot.message_handler(func=lambda msg: msg.text == "🌟বিকাশ নগদ পেমেন্ট রুলস")
+def rules(message):
+    bot.send_message(message.chat.id,"⚠️বিকাশে পেমেন্ট নেওয়ার জন্য অবশ্যই বিকাশ পার্সোনাল নাম্বার দিতে হবে\n\n⚠️ নগদে ১০০ টাকার নিচে পেমেন্ট নিতে হলে সেন্ড মানি ফি ৫ টাকা কেটে নেওয়া হবে। তবে ১০০ টাকার উপরে সেন্ড মানি ফি নাই। ধন্যবাদ🥰🥀")
+
 
 # ================== RUN ==================
 bot.infinity_polling()
