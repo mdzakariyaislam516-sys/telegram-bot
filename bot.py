@@ -1,5 +1,6 @@
 import telebot
 from telebot.types import ReplyKeyboardMarkup, KeyboardButton, InlineKeyboardMarkup, InlineKeyboardButton
+import datetime
 
 # ================== CONFIG ==================
 TOKEN = "8657812226:AAEMVD7GrSZSTuK91tr-zHAlz0vyGMcGuz0"
@@ -7,20 +8,31 @@ ADMIN_GROUP = -1003058363661
 
 bot = telebot.TeleBot(TOKEN)
 
-pending_amount = {}    # user → binance/bybit/bitget
-user_amount = {}       # user → amount
-user_rate = {}         # user → rate (122/123)
-user_total = {}        # user → total
+pending_amount = {}
+user_amount = {}
+user_rate = {}
+user_total = {}
+user_pending = {}
+user_stage = {}
 
 
 # ================== MAIN MENU ==================
 def main_menu(chat_id):
+
+    user_stage[chat_id] = "main_menu"
+
     menu = ReplyKeyboardMarkup(resize_keyboard=True, row_width=1)
     btn1 = KeyboardButton("💵 Dollar Buy/Sell")
     btn2 = KeyboardButton("🧑‍💻 Support")
     btn3 = KeyboardButton("📢 Support Channel")
+
     menu.add(btn1, btn2, btn3)
-    bot.send_message(chat_id, "আপনি কী করতে চান? নিচের মেনু থেকে নির্বাচন করুন।", reply_markup=menu)
+
+    bot.send_message(
+        chat_id,
+        "আপনি কী করতে চান? নিচের মেনু থেকে নির্বাচন করুন।",
+        reply_markup=menu
+    )
 
 
 @bot.message_handler(commands=['start'])
@@ -31,28 +43,59 @@ def start(message):
 # ================== BUY / SELL ==================
 @bot.message_handler(func=lambda msg: msg.text == "💵 Dollar Buy/Sell")
 def buy_sell_menu(message):
+
+    user_stage[message.chat.id] = "buy_sell"
+
     menu = ReplyKeyboardMarkup(resize_keyboard=True, row_width=1)
+
     b1 = KeyboardButton("ডলার কিনতে চাই")
     b2 = KeyboardButton("ডলার বিক্রি করতে চাই")
-    b3 = KeyboardButton("🔙 Back")      # ⬅️ নতুন back button
+    b3 = KeyboardButton("🔙 Back")
+
     menu.add(b1, b2, b3)
-    bot.send_message(message.chat.id, "নিচের যেকোনো একটি অপশন নির্বাচন করুন:", reply_markup=menu)
 
-
-@bot.message_handler(func=lambda msg: msg.text == "ডলার কিনতে চাই")
-def buy_closed(message):
-    menu = ReplyKeyboardMarkup(resize_keyboard=True, row_width=2)
-    menu.add(KeyboardButton("🔙 Back"), KeyboardButton("🏠 Main Menu"))
     bot.send_message(
         message.chat.id,
-        "বর্তমানে বট থেকে ডলার ক্রয় বন্ধ আছে 💔\nআপনি চাইলে ডলার বিক্রয় করতে পারেন।",
+        "নিচের যেকোনো একটি অপশন নির্বাচন করুন:",
         reply_markup=menu
     )
 
 
+@bot.message_handler(func=lambda msg: msg.text == "ডলার কিনতে চাই")
+def buy_closed(message):
+
+    menu = ReplyKeyboardMarkup(resize_keyboard=True, row_width=2)
+    menu.add(KeyboardButton("🔙 Back"), KeyboardButton("🏠 Main Menu"))
+
+    bot.send_message(
+        message.chat.id,
+        "বর্তমানে বট থেকে ডলার ক্রয় বন্ধ আছে 💔\nআপনি চাইলে ডলার বিক্রয় করতে পারেন।ধন্যবাদ🥀",
+        reply_markup=menu
+    )
+
+
+# ================== BACK BUTTON ==================
 @bot.message_handler(func=lambda msg: msg.text == "🔙 Back")
 def back(message):
-    main_menu(message.chat.id)
+
+    cid = message.chat.id
+    stage = user_stage.get(cid)
+
+    if stage == "buy_sell":
+        main_menu(cid)
+
+    elif stage == "sell_menu":
+        buy_sell_menu(message)
+
+    elif stage == "amount_input":
+        sell_options(message)
+
+    elif stage == "screenshot":
+        sell_options(message)
+
+    else:
+        main_menu(cid)
+
 
 @bot.message_handler(func=lambda msg: msg.text == "🏠 Main Menu")
 def home(message):
@@ -63,51 +106,108 @@ def home(message):
 @bot.message_handler(func=lambda msg: msg.text == "ডলার বিক্রি করতে চাই")
 def sell_options(message):
 
-    # reply keyboard
+    user_stage[message.chat.id] = "sell_menu"
+
     reply = ReplyKeyboardMarkup(resize_keyboard=True)
     reply.add(KeyboardButton("🔙 Back"))
 
-    bot.send_message(message.chat.id, "আপনার ডলার কোথায় আছে সিলেক্ট করুন:", reply_markup=reply)
+    bot.send_message(
+        message.chat.id,
+        "আপনার ডলার কোথায় আছে সিলেক্ট করুন:",
+        reply_markup=reply
+    )
 
     inline = InlineKeyboardMarkup()
+
     inline.add(
         InlineKeyboardButton("Binance", callback_data="binance"),
         InlineKeyboardButton("Bybit", callback_data="bybit")
     )
+
     inline.add(
         InlineKeyboardButton("Bitget", callback_data="bitget"),
         InlineKeyboardButton("Xrocket", callback_data="xrocket")
     )
 
-    bot.send_message(message.chat.id, "👇 নিচের অপশন থেকে যেকোনো একটি নির্বাচন করুন:", reply_markup=inline)
+    bot.send_message(
+        message.chat.id,
+        "👇 নিচের অপশন থেকে নির্বাচন করুন:",
+        reply_markup=inline
+    )
 
 
 # ================== INLINE HANDLER ==================
 @bot.callback_query_handler(func=lambda call: True)
 def callback_handler(call):
+
     cid = call.message.chat.id
 
-    # ============= XROCKET =============
-    if call.data == "xrocket":
-        bot.send_message(cid, "Xrocket sell করার জন্য যোগাযোগ করুন:\n@Online_Jobs_24hours")
+    # ===== PAYMENT DONE SYSTEM =====
+    if call.data.startswith("done_"):
+
+        uid = int(call.data.split("_")[1])
+
+        if uid not in user_pending:
+            bot.answer_callback_query(call.id, "⚠️ Payment already completed")
+            return
+
+        amount = user_amount.get(uid)
+        total = user_total.get(uid)
+
+        time_now = datetime.datetime.now().strftime("%H:%M")
+
+        bot.send_message(
+            uid,
+            f"💰 Payment Completed\n\n"
+            f"Amount: {total} BDT\n"
+            f"Method: Bkash\n\n"
+            f"⏰ Time: {time_now}\n"
+            f"📌 Status: Successful\n\n"
+            f"ধন্যবাদ আমাদের সাথে লেনদেন করার জন্য ❤️"
+        )
+
+        bot.edit_message_text(
+            f"💰 Payment Completed\n\n"
+            f"💵 Amount: {amount} USDT\n"
+            f"💸 Total: {total} BDT\n\n"
+            f"📌 Status: Successful\n"
+            f"⏰ Time: {time_now}",
+            call.message.chat.id,
+            call.message.message_id
+        )
+
+        user_pending.pop(uid)
+
+        bot.answer_callback_query(call.id, "✅ Payment marked as completed")
         return
 
-    # ============= CHOOSE METHOD =============
+    # XROCKET
+    if call.data == "xrocket":
+        bot.send_message(
+            cid,
+            "Xrocket ডলার sell করার জন্য সরাসরি এডমিনের সাথে যোগাযোগ করুন:\n@Online_Jobs_24hours"
+        )
+        return
+
+    # CHOOSE METHOD
     if call.data in ["binance", "bybit", "bitget"]:
+
         pending_amount[cid] = call.data
+        user_stage[cid] = "amount_input"
 
         reply = ReplyKeyboardMarkup(resize_keyboard=True)
         reply.add(KeyboardButton("🔙 Back"))
 
         bot.send_message(
             cid,
-            "👉আপনার ডলারের সঠিক পরিমাণ লিখুন।যেমনঃ 0.3, 0.05, 1, 2 ইত্যাদি শুধুমাত্র সংখ্যা লিখবেন\n\n⚠️ 3.5 ডলারের নিচে যেকোনো এমাউন্ট 122 টাকা করে হিসাব হবে।\n⚠️ 3.5 এর বেশি হলে 123 টাকা করে হিসাব হবে।",
+            "👉আপনার ডলারের সঠিক পরিমাণ লিখুন।শুধুমাত্র সংখ্যা লিখবেন। যেমনঃ 0.05, 0.2, 1, 3 ইত্যাদি\n\n⚠️ 3.5 ডলারের নিচে যেকোনো এমাউন্ট 1$= 122 টাকা করে হিসাব করা হবে\n⚠️ 3.5 এর বেশি হলে 123 টাকা করে হিসাব ",
             reply_markup=reply
         )
+
         bot.register_next_step_handler_by_chat_id(cid, calculate_amount)
         return
 
-    # ============= PAYMENT OPTIONS =============
+    # PAYMENT OPTIONS
     if call.data == "pm_bkash":
         bot.send_message(cid, "আপনার বিকাশ নাম্বারটি লিখুনঃ")
         bot.register_next_step_handler_by_chat_id(cid, save_bkash)
@@ -123,9 +223,9 @@ def callback_handler(call):
 
 # ================== CALCULATE AMOUNT ==================
 def calculate_amount(message):
+
     cid = message.chat.id
 
-    # Back
     if message.text == "🔙 Back":
         sell_options(message)
         return
@@ -140,7 +240,6 @@ def calculate_amount(message):
     rate = 122 if amount < 3.5 else 123
     total = amount * rate
 
-    # save
     user_amount[cid] = amount
     user_rate[cid] = rate
     user_total[cid] = total
@@ -160,21 +259,23 @@ def calculate_amount(message):
 
     bot.send_message(
         cid,
-        f"নিচের UID তে ডলার পাঠান:\n\n{uid}\n\nএরপর স্ক্রিনশট পাঠান।",
+        f"নিচের UID তে ডলার পাঠান:\n\n{uid}\n\nএরপর স্ক্রিনশট সেন্ড করুন।",
         parse_mode="Markdown"
     )
 
     reply = ReplyKeyboardMarkup(resize_keyboard=True)
     reply.add(KeyboardButton("🔙 Back"))
 
+    user_stage[cid] = "screenshot"
+
     bot.send_message(cid, "স্ক্রিনশট পাঠান:", reply_markup=reply)
+
     bot.register_next_step_handler_by_chat_id(cid, receive_screenshot)
 
 
 # ================== RECEIVE SCREENSHOT ==================
 def receive_screenshot(message):
 
-    # BACK button
     if message.text == "🔙 Back":
         sell_options(message)
         return
@@ -186,10 +287,8 @@ def receive_screenshot(message):
 
     cid = message.chat.id
 
-    # Forward screenshot
     bot.forward_message(ADMIN_GROUP, cid, message.message_id)
 
-    # Forward formula
     amount = user_amount.get(cid)
     rate = user_rate.get(cid)
     total = user_total.get(cid)
@@ -198,15 +297,45 @@ def receive_screenshot(message):
         calc_text = f"{amount} * {rate} = {total}"
         bot.send_message(ADMIN_GROUP, f"📌 হিসাব:\n{calc_text}")
 
-    # Payment options
+    user = message.from_user
+    username = f"@{user.username}" if user.username else user.first_name
+
+    info_text = (
+        f"📥 New Sell Request\n\n"
+        f"👤 User: {username}\n"
+        f"🆔 User ID: {cid}\n\n"
+        f"💵 Amount: {amount} USDT\n"
+        f"💰 Rate: {rate}\n"
+        f"💸 Total: {total} BDT\n\n"
+        f"📌 Status: Pending"
+    )
+
+    admin_buttons = InlineKeyboardMarkup()
+    admin_buttons.add(
+        InlineKeyboardButton("✅ Payment Done", callback_data=f"done_{cid}")
+    )
+
+    msg = bot.send_message(
+        ADMIN_GROUP,
+        info_text,
+        reply_markup=admin_buttons
+    )
+
+    user_pending[cid] = msg.message_id
+
     inline = InlineKeyboardMarkup()
+
     inline.add(
         InlineKeyboardButton("বিকাশ", callback_data="pm_bkash"),
         InlineKeyboardButton("নগদ", callback_data="pm_nagad"),
         InlineKeyboardButton("রকেট", callback_data="pm_roket")
     )
 
-    bot.send_message(message.chat.id, "আপনি কিসের মাধ্যমে পেমেন্ট নিতে চান?", reply_markup=inline)
+    bot.send_message(
+        message.chat.id,
+        "আপনি কিসের মাধ্যমে পেমেন্ট নিতে চান?",
+        reply_markup=inline
+    )
 
 
 # ================== SAVE PAYMENT NUMBERS ==================
@@ -229,7 +358,7 @@ def save_roket(message):
 def confirm_done(message):
     bot.send_message(
         message.chat.id,
-        "আপনার রিকুয়েস্টটি সঠিকভাবে গ্রহণ করা হয়েছে।\nঅনুগ্রহ করে অপেক্ষা করুন।\n১০ মিনিটের মধ্যে পেমেন্ট না পেলে সাপোর্টে যোগাযোগ করুন।"
+        "আপনার রিকুয়েস্টটি সঠিকভাবে গ্রহণ করা হয়েছে।\nঅনুগ্রহ করে অপেক্ষা করুন।\n১০ মিনিটের মধ্যে পেমেন্ট না পেলে সাপোর্টে যোগাযোগ করুন। ধন্যবাদ🥀"
     )
     main_menu(message.chat.id)
 
@@ -240,7 +369,6 @@ def admin_reply(message):
 
     if message.reply_to_message and message.reply_to_message.forward_from:
         user_id = message.reply_to_message.forward_from.id
-
         bot.send_message(user_id, f"💬 Admin:\n{message.text}")
 
 
