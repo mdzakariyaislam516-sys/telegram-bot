@@ -3,7 +3,7 @@ from telebot.types import ReplyKeyboardMarkup, KeyboardButton, InlineKeyboardMar
 import datetime
 
 # ================== CONFIG ==================
-TOKEN = "8657812226:AAEMVD7GrSZSTuK91tr-zHAlz0vyGMcGuz0"
+TOKEN = "YOUR_BOT_TOKEN"
 ADMIN_GROUP = -1003058363661
 
 bot = telebot.TeleBot(TOKEN)
@@ -17,6 +17,7 @@ user_screenshot = {}
 user_name = {}
 user_method = {}
 user_stage = {}
+message_user_map = {}
 
 # ================== MAIN MENU ==================
 def main_menu(chat_id):
@@ -132,16 +133,19 @@ def callback_handler(call):
         username = user_name.get(uid,"Unknown")
         method = user_method.get(uid,"Unknown")
 
-        time_now = datetime.datetime.now().strftime("%H:%M")
+        time_now = (datetime.datetime.utcnow() + datetime.timedelta(hours=6)).strftime("%H:%M")
 
         bot.send_message(
             uid,
-            f"💰 Payment Completed\n\n"
-            f"Amount: {total} BDT\n"
-            f"Method: {method}\n\n"
-            f"⏰ Time: {time_now}\n"
-            f"📌 Status: Successful\n\n"
-            f"ধন্যবাদ আমাদের সাথে লেনদেন করার জন্য ❤️"
+            f"""💰 Payment Completed
+
+Amount: {total} BDT
+Method: {method}
+
+⏰ Time: {time_now}
+📌 Status: Successful
+
+ধন্যবাদ আমাদের সাথে লেনদেন করার জন্য ❤️"""
         )
 
         bot.edit_message_caption(
@@ -317,9 +321,27 @@ def save_number(message):
     )
 
     user_pending[cid] = msg.message_id
+    message_user_map[msg.message_id] = cid
 
     bot.send_message(cid,"আপনার রিকুয়েস্ট গ্রহণ করা হয়েছে। ১০ মিনিটের মধ্যে পেমেন্ট পাবেন।")
     main_menu(cid)
+
+# ================== ADMIN REPLY ==================
+@bot.message_handler(func=lambda message: message.chat.id == ADMIN_GROUP)
+def admin_reply(message):
+
+    if message.reply_to_message:
+
+        replied_id = message.reply_to_message.message_id
+
+        if replied_id in message_user_map:
+
+            user_id = message_user_map[replied_id]
+
+            bot.send_message(
+                user_id,
+                f"💬 Admin Reply:\n\n{message.text}"
+            )
 
 # ================== SUPPORT ==================
 @bot.message_handler(func=lambda msg: msg.text == "🧑‍💻 Support")
