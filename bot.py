@@ -34,7 +34,8 @@ def buy_sell_menu(message):
     menu = ReplyKeyboardMarkup(resize_keyboard=True, row_width=1)
     b1 = KeyboardButton("ডলার কিনতে চাই")
     b2 = KeyboardButton("ডলার বিক্রি করতে চাই")
-    menu.add(b1, b2)
+    b3 = KeyboardButton("🔙 Back")      # ⬅️ নতুন back button
+    menu.add(b1, b2, b3)
     bot.send_message(message.chat.id, "নিচের যেকোনো একটি অপশন নির্বাচন করুন:", reply_markup=menu)
 
 
