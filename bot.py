@@ -363,7 +363,7 @@ def save_number(message):
     user_pending[cid] = msg.message_id
     message_user_map[msg.message_id] = cid
 
-    bot.send_message(cid,"আপনার রিকুয়েস্ট গ্রহণ করা হয়েছে। ১০ মিনিটের মধ্যে পেমেন্ট পাবেন।")
+    bot.send_message(cid,"আপনার রিকুয়েস্ট টি সঠিকভাবে গ্রহণ করা হয়েছে। অনুগ্রহ করে অপেক্ষা করুন। ১০ মিনিটের মধ্যে পেমেন্ট না পেলে সাপোর্টে যোগাযোগ করুন। ধন্যবাদ🥰🥀\n\nআমাদের সাপোর্ট চ্যানেল\n👉 https://t.me/Online_small_jobs")
     main_menu(cid)
 
 # ================== ADMIN REPLY ==================
