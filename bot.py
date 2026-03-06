@@ -34,7 +34,7 @@ def main_menu(chat_id):
 
     menu.add(btn1,btn2,btn3,btn4)
 
-    bot.send_message(chat_id,"আপনি কী করতে চান? নিচের মেনু থেকে নির্বাচন করুন।",reply_markup=menu)
+    bot.send_message(chat_id,"আপনি কী করতে চান? নিচের মেনু থেকে নির্বাচন করুন। অর্ডার করার আগে অবশ্যই বিকাশ/নগদ পেমেন্ট রুলস দেখে নিবেন। ধন্যবাদ🥀",reply_markup=menu)
 
 @bot.message_handler(commands=['start'])
 def start(message):
