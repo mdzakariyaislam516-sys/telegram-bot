@@ -18,6 +18,7 @@ user_name = {}
 user_method = {}
 user_stage = {}
 message_user_map = {}
+orders = {}
 
 # ================== MAIN MENU ==================
 def main_menu(chat_id):
@@ -33,7 +34,7 @@ def main_menu(chat_id):
 
     menu.add(btn1,btn2,btn3,btn4)
 
-    bot.send_message(chat_id,"আপনি কী করতে চান? নিচের মেনু থেকে নির্বাচন করুন। অর্ডার করার আগে অবশ্যই বিকাশ নগদ পেমেন্ট রুলস দেখে নিবেন।🥀",reply_markup=menu)
+    bot.send_message(chat_id,"আপনি কী করতে চান? নিচের মেনু থেকে নির্বাচন করুন।",reply_markup=menu)
 
 @bot.message_handler(commands=['start'])
 def start(message):
@@ -135,10 +136,15 @@ def callback_handler(call):
             bot.answer_callback_query(call.id,"⚠️ Already done")
             return
 
-        amount = user_amount.get(uid)
-        total = user_total.get(uid)
+        order = orders.get(uid, {})
+
+        amount = order.get("amount")
+        total = order.get("total")
+        method = order.get("method")
+        number = order.get("number")
+        network = order.get("network")
+
         username = user_name.get(uid,"Unknown")
-        method = user_method.get(uid,"Unknown")
 
         time_now = (datetime.datetime.utcnow() + datetime.timedelta(hours=6)).strftime("%H:%M")
 
@@ -159,16 +165,17 @@ Method: {method}
 f"""💰 Payment Completed
 
 👤 User: {username}
+🌐 Network: {network}
 🆔 User ID: {uid}
 
 💵 Amount: {amount} USDT
 💸 Total: {total} BDT
-
-📌 Method: {method}
+💳 Method: {method}
+📱 Number: {number}
 📌 Status: Successful
 ⏰ Time: {time_now}""",
-call.message.chat.id,
-call.message.message_id
+        call.message.chat.id,
+        call.message.message_id
 )
 
         user_pending.pop(uid)
@@ -190,7 +197,7 @@ call.message.message_id
 
         bot.send_message(
             cid,
-            "👉আপনার ডলারের সঠিক পরিমাণ লিখুন\n\n⚠️ যেমনঃ 0.05, 0.5, 1, 2, ইত্যাদি।\n⚠️ শুধুমাত্র সংখ্যা লিখবেন।",
+            "👉আপনার ডলারের সঠিক পরিমাণ লিখুন\n\n⚠️ যেমনঃ 0.05, 0.5, 1, 2\n⚠️ শুধুমাত্র সংখ্যা লিখবেন",
             reply_markup=reply
         )
 
@@ -315,20 +322,29 @@ def save_number(message):
     method = user_method.get(cid)
     network = pending_amount.get(cid)
 
+    orders[cid] = {
+        "amount": amount,
+        "rate": rate,
+        "total": total,
+        "method": method,
+        "number": number,
+        "network": network
+    }
+
     user = message.from_user
     username = f"@{user.username}" if user.username else user.first_name
     user_name[cid] = username
 
     caption = (
-        f"📥 New Sell Request\n\n"
+        f"📥 New Sell Request\n"
         f"👤 User: {username}\n"
         f"🌐 Network: {network}\n"
         f"🆔 User ID: {cid}\n\n"
         f"💵 Amount: {amount} USDT\n"
         f"💰 Rate: {rate}\n"
-        f"💸 Total: {total} BDT\n\n"
+        f"💸 Total: {total} BDT\n"
         f"💳 Payment: {method}\n"
-        f"📱 Number: {number}\n\n"
+        f"📱 Number: {number}\n"
         f"📌 Status: Pending"
     )
 
@@ -347,7 +363,7 @@ def save_number(message):
     user_pending[cid] = msg.message_id
     message_user_map[msg.message_id] = cid
 
-    bot.send_message(cid,"আপনার রিকুয়েস্টটি সফলভাবে গ্রহণ করা হয়েছে। অনুগ্রহ করে অপেক্ষা করুন।১০ মিনিটের মধ্যে পেমেন্ট না পেলে সাপোর্টে যোগাযোগ করুন।🥰ধন্যবাদ🥀\n আমাদের সাপোর্ট চ্যানেল👇\n https://t.me/Online_small_jobs")
+    bot.send_message(cid,"আপনার রিকুয়েস্ট গ্রহণ করা হয়েছে। ১০ মিনিটের মধ্যে পেমেন্ট পাবেন।")
     main_menu(cid)
 
 # ================== ADMIN REPLY ==================
