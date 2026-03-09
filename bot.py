@@ -34,7 +34,7 @@ def main_menu(chat_id):
 
     menu.add(btn1,btn2,btn3,btn4)
 
-    bot.send_message(chat_id,"আপনি কী করতে চান? নিচের মেনু থেকে নির্বাচন করুন। অর্ডার করার আগে অবশ্যই বিকাশ/নগদ পেমেন্ট রুলস দেখে নিবেন। ধন্যবাদ🥀",reply_markup=menu)
+    bot.send_message(chat_id,"আপনি কী করতে চান? নিচের মেনু থেকে নির্বাচন করুন। অর্ডার করার আগে অবশ্যই বিকাশ নগদ পেমেন্ট রুলস দেখে নিবেন। ধন্যবাদ🥀",reply_markup=menu)
 
 @bot.message_handler(commands=['start'])
 def start(message):
@@ -372,16 +372,25 @@ def admin_reply(message):
 
     if message.reply_to_message:
 
-        replied_id = message.reply_to_message.message_id
+        text = message.reply_to_message.caption or ""
 
-        if replied_id in message_user_map:
+        if "User ID:" in text or "User ID" in text:
 
-            user_id = message_user_map[replied_id]
+            try:
 
-            bot.send_message(
-                user_id,
-                f"💬 Admin Reply:\n\n{message.text}"
-            )
+                if "User ID:" in text:
+                    user_id = int(text.split("User ID:")[1].split("\n")[0].strip())
+
+                else:
+                    user_id = int(text.split("User ID")[1].split("\n")[0].strip())
+
+                bot.send_message(
+                    user_id,
+                    f"💬 Admin Reply:\n\n{message.text}"
+                )
+
+            except Exception as e:
+                     print("Admin reply error:", e)
 
 # ================== SUPPORT ==================
 @bot.message_handler(func=lambda msg: msg.text == "🧑‍💻 Support")
