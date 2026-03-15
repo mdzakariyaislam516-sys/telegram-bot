@@ -34,7 +34,7 @@ def main_menu(chat_id):
 
     menu.add(btn1,btn2,btn3,btn4)
 
-    bot.send_message(chat_id,"আপনি কী করতে চান? নিচের মেনু থেকে নির্বাচন করুন। অর্ডার করার আগে অবশ্যই বিকাশ নগদ পেমেন্ট রুলস দেখে নিবেন। ধন্যবাদ🥀",reply_markup=menu)
+    bot.send_message(chat_id,"আপনি কী করতে চান? নিচের মেনু থেকে নির্বাচন করুন।\n\n অর্ডার করার আগে অবশ্যই বিকাশ নগদ পেমেন্ট রুলস দেখে নিবেন। ধন্যবাদ🥀",reply_markup=menu)
 
 @bot.message_handler(commands=['start'])
 def start(message):
@@ -75,7 +75,7 @@ def back(message):
         main_menu(cid)
 
     elif stage == "sell_menu":
-        buy_sell_menu(message)
+        main_menu(message)
 
     elif stage == "amount_input":
         sell_options(message)
@@ -183,6 +183,60 @@ f"""💰 Payment Completed
         bot.answer_callback_query(call.id,"✅ Done")
         return
 
+# ===== PAYMENT REJECT =====
+    if call.data.startswith("reject_"):
+
+        uid = int(call.data.split("_")[1])
+
+        if uid not in user_pending:
+            bot.answer_callback_query(call.id,"⚠️ Already processed")
+            return
+
+        username = user_name.get(uid,"Unknown")
+        order = orders.get(uid, {})
+
+        amount = order.get("amount")
+        total = order.get("total")
+        method = order.get("method")
+        number = order.get("number")
+        network = order.get("network")
+
+        time_now = (datetime.datetime.utcnow() + datetime.timedelta(hours=6)).strftime("%H:%M")
+
+        bot.send_message(
+            uid,
+            """❌ Payment Rejected
+
+আপনার পাঠানো স্ক্রিনশট টি সঠিক নয় তাই পেমেন্ট রিজেক্ট করা হয়েছে।
+
+অনুগ্রহ করে সাপোর্টে যোগাযোগ করুন।
+
+ধন্যবাদ🥀"""
+        )
+
+        bot.edit_message_caption(
+f"""❌ Payment Rejected
+
+👤 User: {username}
+🌐 Network: {network}
+🆔 User ID: {uid}
+
+💵 Amount: {amount} USDT
+💸 Total: {total} BDT
+💳 Method: {method}
+📱 Number: {number}
+
+📌 Status: Rejected
+⏰ Time: {time_now}""",
+        call.message.chat.id,
+        call.message.message_id
+)
+
+        user_pending.pop(uid)
+
+        bot.answer_callback_query(call.id,"❌ Rejected")
+        return
+
     if call.data == "xrocket":
         bot.send_message(cid,"Xrocket ডলার sell করার জন্য সরাসরি এডমিনের সাথে যোগাযোগ করুন:\n@Online_Jobs_24hours")
         return
@@ -219,7 +273,7 @@ def calculate_amount(message):
         bot.register_next_step_handler_by_chat_id(cid,calculate_amount)
         return
 
-    rate = 122.5 if amount < 3.5 else 123
+    rate = 122 if amount < 3.5 else 123
     total = amount * rate
 
     user_amount[cid] = amount
@@ -349,9 +403,11 @@ def save_number(message):
     )
 
     admin_buttons = InlineKeyboardMarkup()
+
     admin_buttons.add(
-        InlineKeyboardButton("✅ Payment Done",callback_data=f"done_{cid}")
-    )
+              InlineKeyboardButton("✅ Payment Done",callback_data=f"done_{cid}"),
+              InlineKeyboardButton("❌ Reject",callback_data=f"reject_{cid}")
+)
 
     msg = bot.send_photo(
         ADMIN_GROUP,
