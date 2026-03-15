@@ -274,7 +274,7 @@ def calculate_amount(message):
         return
 
     rate = 122 if amount < 3.5 else 123
-    total = amount * rate
+    total = int(amount * rate)
 
     user_amount[cid] = amount
     user_rate[cid] = rate
