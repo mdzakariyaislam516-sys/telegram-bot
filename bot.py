@@ -75,7 +75,7 @@ def back(message):
         main_menu(cid)
 
     elif stage == "sell_menu":
-        main_menu(message)
+        buy_sell_menu(message)
 
     elif stage == "amount_input":
         sell_options(message)
