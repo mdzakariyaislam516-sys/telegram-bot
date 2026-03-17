@@ -19,11 +19,23 @@ user_method = {}
 user_stage = {}
 message_user_map = {}
 orders = {}
+stage_history = {}
+
+def set_stage(cid, stage):
+
+    if cid not in stage_history:
+        stage_history[cid] = []
+
+    # আগের stage save করো
+    if cid in user_stage:
+        stage_history[cid].append(user_stage[cid])
+
+    user_stage[cid] = stage
 
 # ================== MAIN MENU ==================
 def main_menu(chat_id):
 
-    user_stage[chat_id] = "main_menu"
+    set_stage(chat_id, "main_menu")
 
     menu = ReplyKeyboardMarkup(resize_keyboard=True,row_width=1)
 
@@ -38,13 +50,19 @@ def main_menu(chat_id):
 
 @bot.message_handler(commands=['start'])
 def start(message):
-    main_menu(message.chat.id)
+
+    cid = message.chat.id
+
+    # history reset
+    stage_history[cid] = []
+
+    main_menu(cid)
 
 # ================== BUY SELL ==================
 @bot.message_handler(func=lambda msg: msg.text == "💵 Dollar Buy/Sell")
 def buy_sell_menu(message):
 
-    user_stage[message.chat.id] = "buy_sell"
+    set_stage(message.chat.id, "buy_sell")
 
     menu = ReplyKeyboardMarkup(resize_keyboard=True,row_width=1)
 
@@ -69,19 +87,36 @@ def buy_closed(message):
 def back(message):
 
     cid = message.chat.id
-    stage = user_stage.get(cid)
 
-    if stage == "buy_sell":
+    # যদি history না থাকে → main menu
+    if cid not in stage_history or len(stage_history[cid]) == 0:
+        main_menu(cid)
+        return
+
+    # আগের stage বের করো
+    prev_stage = stage_history[cid].pop()
+    user_stage[cid] = prev_stage
+
+    # ===== REDIRECT BASED ON STAGE =====
+
+    if prev_stage == "main_menu":
         main_menu(cid)
 
-    elif stage == "sell_menu":
+    elif prev_stage == "buy_sell":
         buy_sell_menu(message)
 
-    elif stage == "amount_input":
+    elif prev_stage == "sell_menu":
         sell_options(message)
 
-    elif stage == "screenshot":
-        sell_options(message)
+    elif prev_stage == "amount_input":
+        set_stage(cid, "amount_input")
+        bot.send_message(cid, "আবার amount লিখুন:")
+        bot.register_next_step_handler_by_chat_id(cid, calculate_amount)
+
+    elif prev_stage == "screenshot":
+        set_stage(cid, "screenshot")
+        bot.send_message(cid, "আবার স্ক্রিনশট পাঠান:")
+        bot.register_next_step_handler_by_chat_id(cid, receive_screenshot)
 
     else:
         main_menu(cid)
@@ -94,7 +129,7 @@ def home(message):
 @bot.message_handler(func=lambda msg: msg.text == "ডলার বিক্রি করতে চাই")
 def sell_options(message):
 
-    user_stage[message.chat.id] = "sell_menu"
+    set_stage(message.chat.id, "sell_menu")
 
     reply = ReplyKeyboardMarkup(resize_keyboard=True)
     reply.add(KeyboardButton("🔙 Back"))
@@ -244,7 +279,7 @@ f"""❌ Payment Rejected
     if call.data in ["binance","bybit","bitget","BEP-20","Polygon"]:
 
         pending_amount[cid] = call.data
-        user_stage[cid] = "amount_input"
+        set_stage(cid, "amount_input")
 
         reply = ReplyKeyboardMarkup(resize_keyboard=True)
         reply.add(KeyboardButton("🔙 Back"))
@@ -263,7 +298,7 @@ def calculate_amount(message):
     cid = message.chat.id
 
     if message.text == "🔙 Back":
-        sell_options(message)
+        back(message)
         return
 
     try:
@@ -311,7 +346,7 @@ def calculate_amount(message):
     reply = ReplyKeyboardMarkup(resize_keyboard=True)
     reply.add(KeyboardButton("🔙 Back"))
 
-    user_stage[cid] = "screenshot"
+    set_stage(cid, "screenshot")
 
     bot.send_message(cid,"স্ক্রিনশট পাঠান:",reply_markup=reply)
 
@@ -320,16 +355,18 @@ def calculate_amount(message):
 # ================== SCREENSHOT ==================
 def receive_screenshot(message):
 
+    cid = message.chat.id
+
     if message.text == "🔙 Back":
-        sell_options(message)
+        set_stage(cid, "amount_input")
+        bot.send_message(cid,"আবার amount লিখুন:")
+        bot.register_next_step_handler_by_chat_id(cid, calculate_amount)
         return
 
     if message.content_type != "photo":
-        bot.send_message(message.chat.id,"স্ক্রিনশট পাঠান")
-        bot.register_next_step_handler_by_chat_id(message.chat.id,receive_screenshot)
+        bot.send_message(cid,"স্ক্রিনশট পাঠান")
+        bot.register_next_step_handler_by_chat_id(cid,receive_screenshot)
         return
-
-    cid = message.chat.id
 
     user_screenshot[cid] = message.photo[-1].file_id
 
