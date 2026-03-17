@@ -87,6 +87,7 @@ def buy_closed(message):
 def back(message):
 
     cid = message.chat.id
+    bot.clear_step_handler_by_chat_id(cid)
 
     # যদি history না থাকে → main menu
     if cid not in stage_history or len(stage_history[cid]) == 0:
@@ -358,6 +359,7 @@ def receive_screenshot(message):
     cid = message.chat.id
 
     if message.text == "🔙 Back":
+        bot.clear_step_handler_by_chat_id(cid)
         set_stage(cid, "amount_input")
         bot.send_message(cid,"আবার amount লিখুন:")
         bot.register_next_step_handler_by_chat_id(cid, calculate_amount)
