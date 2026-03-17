@@ -111,7 +111,7 @@ def back(message):
 
     elif prev_stage == "amount_input":
         set_stage(cid, "amount_input")
-        bot.send_message(cid, "আবার amount লিখুন:")
+        bot.send_message(cid, "পুনরায় অর্ডার করুন")
         bot.register_next_step_handler_by_chat_id(cid, calculate_amount)
 
     elif prev_stage == "screenshot":
