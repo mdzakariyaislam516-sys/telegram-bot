@@ -26,8 +26,7 @@ def set_stage(cid, stage):
     if cid not in stage_history:
         stage_history[cid] = []
 
-    # আগের stage save করো
-    if cid in user_stage:
+    if cid in user_stage and user_stage[cid] != stage:
         stage_history[cid].append(user_stage[cid])
 
     user_stage[cid] = stage
@@ -42,7 +41,7 @@ def main_menu(chat_id):
     btn1 = KeyboardButton("💵 Dollar Buy/Sell")
     btn2 = KeyboardButton("🧑‍💻 Support")
     btn3 = KeyboardButton("📢 Support Channel")
-    btn4 = KeyboardButton("🌟বিকাশ নগদ পেমেন্ট রুলস")
+    btn4 = KeyboardButton("🌟বিকাশ নগদ পেমেন্ট রুলস") 
 
     menu.add(btn1,btn2,btn3,btn4)
 
@@ -53,8 +52,17 @@ def start(message):
 
     cid = message.chat.id
 
-    # history reset
+    bot.clear_step_handler_by_chat_id(cid)
+
+    user_stage.pop(cid, None)
     stage_history[cid] = []
+
+    pending_amount.pop(cid, None)
+    user_amount.pop(cid, None)
+    user_rate.pop(cid, None)
+    user_total.pop(cid, None)
+    user_screenshot.pop(cid, None)
+    user_method.pop(cid, None)
 
     main_menu(cid)
 
@@ -89,16 +97,11 @@ def back(message):
     cid = message.chat.id
     bot.clear_step_handler_by_chat_id(cid)
 
-    # যদি history না থাকে → main menu
     if cid not in stage_history or len(stage_history[cid]) == 0:
-        main_menu(cid)
-        return
+        return main_menu(cid)
 
-    # আগের stage বের করো
     prev_stage = stage_history[cid].pop()
     user_stage[cid] = prev_stage
-
-    # ===== REDIRECT BASED ON STAGE =====
 
     if prev_stage == "main_menu":
         main_menu(cid)
@@ -108,16 +111,6 @@ def back(message):
 
     elif prev_stage == "sell_menu":
         sell_options(message)
-
-    elif prev_stage == "amount_input":
-        set_stage(cid, "amount_input")
-        bot.send_message(cid, "পুনরায় অর্ডার করুন")
-        bot.register_next_step_handler_by_chat_id(cid, calculate_amount)
-
-    elif prev_stage == "screenshot":
-        set_stage(cid, "screenshot")
-        bot.send_message(cid, "আবার স্ক্রিনশট পাঠান:")
-        bot.register_next_step_handler_by_chat_id(cid, receive_screenshot)
 
     else:
         main_menu(cid)
@@ -299,8 +292,7 @@ def calculate_amount(message):
     cid = message.chat.id
 
     if message.text == "🔙 Back":
-        back(message)
-        return
+        return back(message)
 
     try:
         amount = float(message.text)
@@ -359,11 +351,7 @@ def receive_screenshot(message):
     cid = message.chat.id
 
     if message.text == "🔙 Back":
-        bot.clear_step_handler_by_chat_id(cid)
-        set_stage(cid, "amount_input")
-        bot.send_message(cid,"আবার amount লিখুন:")
-        bot.register_next_step_handler_by_chat_id(cid, calculate_amount)
-        return
+        return back(message)
 
     if message.content_type != "photo":
         bot.send_message(cid,"স্ক্রিনশট পাঠান")
@@ -503,3 +491,4 @@ def rules(message):
 
 # ================== RUN ==================
 bot.infinity_polling()
+
