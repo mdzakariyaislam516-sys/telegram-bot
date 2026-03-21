@@ -289,6 +289,8 @@ f"""❌ Payment Rejected
 
                 bot.edit_message_text(
                     f"""🔴 Payment Rejected
+
+⚠️Reason: পাঠানো তথ্য সঠিক নয়।
 👤 Name: {name}
 🌐 Network: {network}
 💵 Amount: {amount} USDT
