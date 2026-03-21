@@ -5,7 +5,8 @@ import datetime
 # ================== CONFIG ==================
 TOKEN = "8657812226:AAEMVD7GrSZSTuK91tr-zHAlz0vyGMcGuz0"
 ADMIN_GROUP = -1003058363661
-
+ADMIN_ID = 7114259913
+PROOF_CHANNEL = -1003417566709
 bot = telebot.TeleBot(TOKEN)
 
 pending_amount = {}
@@ -20,6 +21,9 @@ user_stage = {}
 message_user_map = {}
 orders = {}
 stage_history = {}
+all_users = set()
+proof_messages = {}
+first_name = {}
 
 def set_stage(cid, stage):
 
@@ -63,6 +67,7 @@ def start(message):
     user_total.pop(cid, None)
     user_screenshot.pop(cid, None)
     user_method.pop(cid, None)
+    all_users.add(cid)
 
     main_menu(cid)
 
@@ -207,6 +212,23 @@ f"""💰 Payment Completed
         call.message.message_id
 )
 
+# ================== PROOF CHANNEL UPDATE ==================
+        if uid in proof_messages:
+            try:
+                name = first_name.get(uid, "unknown")
+                bot.edit_message_text(
+                    f"🟢 Payment Completed\n\n"
+                    f"👤 Name: {name}\n"
+                    f"🌐 Network: {network}\n"
+                    f"💵 Amount: {amount} USDT\n"
+                    f"💸 Total: {total} BDT\n"
+                    f"⏰ Time: {time_now}",
+                    PROOF_CHANNEL,
+                    proof_messages[uid]
+                )
+            except:
+                pass
+
         user_pending.pop(uid)
 
         bot.answer_callback_query(call.id,"✅ Done")
@@ -260,6 +282,24 @@ f"""❌ Payment Rejected
         call.message.chat.id,
         call.message.message_id
 )
+
+        if uid in proof_messages:
+            try:
+                name = first_name.get(uid, "Unknown")
+
+                bot.edit_message_text(
+                    f"""🔴 Payment Rejected
+👤 Name: {name}
+🌐 Network: {network}
+💵 Amount: {amount} USDT
+💸 Total: {total} BDT
+⏰ Time: {time_now}""",
+                PROOF_CHANNEL,
+                proof_messages[uid]
+            )
+            except:
+                pass
+
 
         user_pending.pop(uid)
 
@@ -413,6 +453,7 @@ def save_number(message):
     }
 
     user = message.from_user
+    first_name[cid] = user.first_name
     username = f"@{user.username}" if user.username else user.first_name
     user_name[cid] = username
 
@@ -442,6 +483,27 @@ def save_number(message):
         caption=caption,
         reply_markup=admin_buttons
     )
+
+# পেমেন্ট প্রুফ কোড
+
+    time_now = (datetime.datetime.utcnow() + datetime.timedelta(hours=6)).strftime("%H:%M")
+
+    name = user.first_name
+
+    proof_text = (
+        f"🟡 Payment Pending\n\n"
+        f"👤 Name: {name}\n"
+        f"🌐 Network: {network}\n"
+        f"💵 Amount: {amount} USDT\n"
+        f"💸 Total: {total} BDT\n"
+        f"⏰ Time: {time_now}"
+    )
+
+    proof_msg = bot.send_message(PROOF_CHANNEL, proof_text)
+
+    proof_messages[cid] = proof_msg.message_id
+
+# 💔💔💔 
 
     user_pending[cid] = msg.message_id
     message_user_map[msg.message_id] = cid
@@ -488,7 +550,40 @@ def channel(message):
 def rules(message):
     bot.send_message(message.chat.id,"⚠️বিকাশে পেমেন্ট নেওয়ার জন্য অবশ্যই বিকাশ পার্সোনাল নাম্বার দিতে হবে\n\n⚠️ নগদে ১০০ টাকার নিচে পেমেন্ট নিতে হলে সেন্ড মানি ফি ৫ টাকা কেটে নেওয়া হবে। তবে ১০০ টাকার উপরে সেন্ড মানি ফি নাই। ধন্যবাদ🥰🥀")
 
+# ================== BROADCAST ==================
+@bot.message_handler(commands=['broadcast'])
+def broadcast(message):
+
+    if message.chat.id != ADMIN_ID:
+        return
+
+    bot.clear_step_handler_by_chat_id(message.chat.id)
+
+    bot.send_message(message.chat.id, "📢 Broadcast message পাঠান:")
+
+    bot.register_next_step_handler(message, send_broadcast)
+
+def send_broadcast(message):
+
+    if message.text == "/cancel":
+        bot.send_message(message.chat.id, "❌ Broadcast cancel হয়েছে")
+        return
+
+    sent = 0
+    failed = 0
+
+    for user_id in all_users:
+        try:
+            bot.send_message(user_id, message.text)
+            sent += 1
+        except:
+            failed += 1
+
+    bot.send_message(
+        message.chat.id,
+        f"✅ Broadcast Done\n\n✔ Sent: {sent}\n❌ Failed: {failed}"
+    )
+
 
 # ================== RUN ==================
-bot.infinity_polling()
-
+bot.infinity_polling() 
