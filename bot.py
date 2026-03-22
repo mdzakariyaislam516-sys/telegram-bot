@@ -24,7 +24,11 @@ stage_history = {}
 all_users = set()
 proof_messages = {}
 first_name = {}
-users_cache = set()
+try:
+    with open("users.txt", "r") as f:
+        users_cache = set(int(x) for x in f.read().splitlines())
+except:
+    users_cache = set()
 
 def save_user(user_id):
     if user_id in users_cache:
@@ -358,7 +362,7 @@ def calculate_amount(message):
         bot.register_next_step_handler_by_chat_id(cid,calculate_amount)
         return
 
-    rate = 123 if amount < 5 else 124
+    rate = 122.5 if amount < 3.5 else 123
     total = int(amount * rate)
 
     user_amount[cid] = amount
@@ -600,7 +604,7 @@ def channel(message):
 
 @bot.message_handler(func=lambda msg: msg.text == "🌟বিকাশ নগদ পেমেন্ট রুলস")
 def rules(message):
-    bot.send_message(message.chat.id,"⚠️বিকাশে পেমেন্ট নেওয়ার জন্য অবশ্যই বিকাশ পার্সোনাল নাম্বার দিতে হবে\n\n⚠️ নগদে ১০০ টাকার নিচে পেমেন্ট নিতে হলে সেন্ড মানি ফি ৫ টাকা কেটে নেওয়া হবে। তবে ১০০ টাকার উপরে সেন্ড মানি ফি নাই। ধন্যবাদ🥰🥀/n/nবি:দ্র: কেও 0.10$ এর নিচে অর্ডার করবেন না।")
+    bot.send_message(message.chat.id,"⚠️বিকাশে পেমেন্ট নেওয়ার জন্য অবশ্যই বিকাশ পার্সোনাল নাম্বার দিতে হবে\n\n⚠️ নগদে ১০০ টাকার নিচে পেমেন্ট নিতে হলে সেন্ড মানি ফি ৫ টাকা কেটে নেওয়া হবে। তবে ১০০ টাকার উপরে সেন্ড মানি ফি নাই। ধন্যবাদ🥰🥀/n/nবি:দ্র: কেও 0.10$ এর নিচে অর্ডার করবেন না। এর নিচে অর্ডার করলে পেমেন্ট লস হইলে কর্তৃপক্ষ দায়ী নয়। তাই অবশ্যই 0.10$ এর উপরে অর্ডার করবেন। ধন্যবাদ🥰🥀")
 
 @bot.message_handler(func=lambda msg: msg.text == "📸 Payment Proof Channel")
 def proof_channel(message):
