@@ -600,7 +600,7 @@ def channel(message):
 
 @bot.message_handler(func=lambda msg: msg.text == "🌟বিকাশ নগদ পেমেন্ট রুলস")
 def rules(message):
-    bot.send_message(message.chat.id,"⚠️বিকাশে পেমেন্ট নেওয়ার জন্য অবশ্যই বিকাশ পার্সোনাল নাম্বার দিতে হবে\n\n⚠️ নগদে ১০০ টাকার নিচে পেমেন্ট নিতে হলে সেন্ড মানি ফি ৫ টাকা কেটে নেওয়া হবে। তবে ১০০ টাকার উপরে সেন্ড মানি ফি নাই। ধন্যবাদ🥰🥀")
+    bot.send_message(message.chat.id,"⚠️বিকাশে পেমেন্ট নেওয়ার জন্য অবশ্যই বিকাশ পার্সোনাল নাম্বার দিতে হবে\n\n⚠️ নগদে ১০০ টাকার নিচে পেমেন্ট নিতে হলে সেন্ড মানি ফি ৫ টাকা কেটে নেওয়া হবে। তবে ১০০ টাকার উপরে সেন্ড মানি ফি নাই। ধন্যবাদ🥰🥀/n/nবি:দ্র: কেও 0.10$ এর নিচে অর্ডার করবেন না।")
 
 @bot.message_handler(func=lambda msg: msg.text == "📸 Payment Proof Channel")
 def proof_channel(message):
