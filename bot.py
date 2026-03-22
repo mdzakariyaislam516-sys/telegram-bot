@@ -24,16 +24,16 @@ stage_history = {}
 all_users = set()
 proof_messages = {}
 first_name = {}
-def save_user(user_id):
-    try:
-        with open("users.txt", "r") as f:
-            users = f.read().splitlines()
-    except:
-        users = []
+users_cache = set()
 
-    if str(user_id) not in users:
-        with open("users.txt", "a") as f:
-            f.write(str(user_id) + "\n")
+def save_user(user_id):
+    if user_id in users_cache:
+        return
+
+    users_cache.add(user_id)
+
+    with open("users.txt", "a") as f:
+        f.write(str(user_id) + "\n")
 
 def set_stage(cid, stage):
 
@@ -358,7 +358,7 @@ def calculate_amount(message):
         bot.register_next_step_handler_by_chat_id(cid,calculate_amount)
         return
 
-    rate = 122.5 if amount < 3.5 else 123
+    rate = 123 if amount < 5 else 124
     total = int(amount * rate)
 
     user_amount[cid] = amount
@@ -555,13 +555,16 @@ def admin_reply(message):
                      print("Admin reply error:", e)
 
 # ================== GROUP BROADCAST ==================
-@bot.message_handler(func=lambda msg: msg.chat.id == ADMIN_GROUP and msg.text and msg.text.startswith("/all"))
-def group_broadcast(message):
+@bot.message_handler(commands=['all'])
+def broadcast(message):
+
+    if message.chat.id != ADMIN_ID:
+        return
 
     text = message.text.replace("/all", "").strip()
 
     if not text:
-        bot.send_message(ADMIN_GROUP, "⚠️ Message দাও")
+        bot.send_message(message.chat.id, "⚠️ Message দাও")
         return
 
     try:
@@ -581,7 +584,7 @@ def group_broadcast(message):
             failed += 1
 
     bot.send_message(
-        ADMIN_GROUP,
+        message.chat.id,
         f"📢 Broadcast Done\n\n✔ Sent: {sent}\n❌ Failed: {failed}"
     )
 
@@ -607,9 +610,6 @@ def proof_channel(message):
 def track_users(message):
     save_user(message.chat.id)
 
-@bot.message_handler(func=lambda m: True)
-def test(message):
-    print(message.chat.id)
 
 # ================== RUN ==================
 bot.infinity_polling()
