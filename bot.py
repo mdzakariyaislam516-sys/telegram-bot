@@ -58,9 +58,9 @@ def main_menu(chat_id):
     btn4 = KeyboardButton("🌟বিকাশ নগদ পেমেন্ট রুলস")
     btn5 = KeyboardButton("📸 Payment Proof Channel")
 
-    menu.row(btn1, btn2)
-    menu.row(btn3)
-    menu.row(btn4, btn5)
+    menu.row(btn1, btn3)
+    menu.row(btn4)
+    menu.row(btn2, btn5)
 
     bot.send_message(chat_id,"আপনি কী করতে চান? নিচের মেনু থেকে নির্বাচন করুন।\n\n অর্ডার করার আগে অবশ্যই বিকাশ নগদ পেমেন্ট রুলস দেখে নিবেন। ধন্যবাদ🥀",reply_markup=menu)
 
@@ -68,6 +68,8 @@ def main_menu(chat_id):
 def start(message):
 
     cid = message.chat.id
+
+    save_user(cid)
 
     bot.clear_step_handler_by_chat_id(cid)
 
@@ -607,4 +609,4 @@ def track_users(message):
 
 
 # ================== RUN ==================
-bot.infinity_polling() 
+bot.infinity_polling()
