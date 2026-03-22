@@ -24,6 +24,16 @@ stage_history = {}
 all_users = set()
 proof_messages = {}
 first_name = {}
+def save_user(user_id):
+    try:
+        with open("users.txt", "r") as f:
+            users = f.read().splitlines()
+    except:
+        users = []
+
+    if str(user_id) not in users:
+        with open("users.txt", "a") as f:
+            f.write(str(user_id) + "\n")
 
 def set_stage(cid, stage):
 
@@ -40,14 +50,17 @@ def main_menu(chat_id):
 
     set_stage(chat_id, "main_menu")
 
-    menu = ReplyKeyboardMarkup(resize_keyboard=True,row_width=1)
+    menu = ReplyKeyboardMarkup(resize_keyboard=True)
 
     btn1 = KeyboardButton("💵 Dollar Buy/Sell")
     btn2 = KeyboardButton("🧑‍💻 Support")
     btn3 = KeyboardButton("📢 Support Channel")
-    btn4 = KeyboardButton("🌟বিকাশ নগদ পেমেন্ট রুলস") 
+    btn4 = KeyboardButton("🌟বিকাশ নগদ পেমেন্ট রুলস")
+    btn5 = KeyboardButton("📸 Payment Proof Channel")
 
-    menu.add(btn1,btn2,btn3,btn4)
+    menu.row(btn1, btn2)
+    menu.row(btn3)
+    menu.row(btn4, btn5)
 
     bot.send_message(chat_id,"আপনি কী করতে চান? নিচের মেনু থেকে নির্বাচন করুন।\n\n অর্ডার করার আগে অবশ্যই বিকাশ নগদ পেমেন্ট রুলস দেখে নিবেন। ধন্যবাদ🥀",reply_markup=menu)
 
@@ -343,7 +356,7 @@ def calculate_amount(message):
         bot.register_next_step_handler_by_chat_id(cid,calculate_amount)
         return
 
-    rate = 123 if amount < 5 else 124
+    rate = 122.5 if amount < 3.5 else 123
     total = int(amount * rate)
 
     user_amount[cid] = amount
@@ -539,6 +552,38 @@ def admin_reply(message):
             except Exception as e:
                      print("Admin reply error:", e)
 
+# ================== GROUP BROADCAST ==================
+@bot.message_handler(func=lambda msg: msg.chat.id == ADMIN_GROUP and msg.text and msg.text.startswith("/all"))
+def group_broadcast(message):
+
+    text = message.text.replace("/all", "").strip()
+
+    if not text:
+        bot.send_message(ADMIN_GROUP, "⚠️ Message দাও")
+        return
+
+    try:
+        with open("users.txt", "r") as f:
+            users = f.read().splitlines()
+    except:
+        users = []
+
+    sent = 0
+    failed = 0
+
+    for user_id in users:
+        try:
+            bot.send_message(int(user_id), text)
+            sent += 1
+        except:
+            failed += 1
+
+    bot.send_message(
+        ADMIN_GROUP,
+        f"📢 Broadcast Done\n\n✔ Sent: {sent}\n❌ Failed: {failed}"
+    )
+
+
 # ================== SUPPORT ==================
 @bot.message_handler(func=lambda msg: msg.text == "🧑‍💻 Support")
 def support(message):
@@ -552,39 +597,13 @@ def channel(message):
 def rules(message):
     bot.send_message(message.chat.id,"⚠️বিকাশে পেমেন্ট নেওয়ার জন্য অবশ্যই বিকাশ পার্সোনাল নাম্বার দিতে হবে\n\n⚠️ নগদে ১০০ টাকার নিচে পেমেন্ট নিতে হলে সেন্ড মানি ফি ৫ টাকা কেটে নেওয়া হবে। তবে ১০০ টাকার উপরে সেন্ড মানি ফি নাই। ধন্যবাদ🥰🥀")
 
-# ================== BROADCAST ==================
-@bot.message_handler(commands=['broadcast'])
-def broadcast(message):
+@bot.message_handler(func=lambda msg: msg.text == "📸 Payment Proof Channel")
+def proof_channel(message):
+    bot.send_message(message.chat.id, "আমাদের Payment Proof Channel:\n👉 https://t.me/starhbemama")
 
-    if message.chat.id != ADMIN_ID:
-        return
-
-    bot.clear_step_handler_by_chat_id(message.chat.id)
-
-    bot.send_message(message.chat.id, "📢 Broadcast message পাঠান:")
-
-    bot.register_next_step_handler(message, send_broadcast)
-
-def send_broadcast(message):
-
-    if message.text == "/cancel":
-        bot.send_message(message.chat.id, "❌ Broadcast cancel হয়েছে")
-        return
-
-    sent = 0
-    failed = 0
-
-    for user_id in all_users:
-        try:
-            bot.send_message(user_id, message.text)
-            sent += 1
-        except:
-            failed += 1
-
-    bot.send_message(
-        message.chat.id,
-        f"✅ Broadcast Done\n\n✔ Sent: {sent}\n❌ Failed: {failed}"
-    )
+@bot.message_handler(func=lambda m: True)
+def track_users(message):
+    save_user(message.chat.id)
 
 
 # ================== RUN ==================
