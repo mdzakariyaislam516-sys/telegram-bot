@@ -607,6 +607,9 @@ def proof_channel(message):
 def track_users(message):
     save_user(message.chat.id)
 
+@bot.message_handler(func=lambda m: True)
+def test(message):
+    print(message.chat.id)
 
 # ================== RUN ==================
 bot.infinity_polling()
