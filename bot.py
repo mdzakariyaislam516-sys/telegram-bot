@@ -377,7 +377,7 @@ def calculate_amount(message):
         uid = "`774896980`"
 
     elif method == "bybit":
-        uid = "`510385821`"
+        uid = "`510385821`\n\nযাদের bybit এ ১ ডলারের নিচে আছে তারা aptos chain সিলেক্ট করে নিচের এড্রেসে পাঠাবেন\n Aptos= `0x8e03c8e327455f805df7f0dec92d837be894f499aa3be6ff2a7dda44bf08d954`"
 
     elif method == "bitget":
         uid = "`4952119040`"
