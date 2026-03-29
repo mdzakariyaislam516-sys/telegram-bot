@@ -859,8 +859,8 @@ def get_bkash_amount(message):
 
     bot.send_message(cid,
     "নিচের বিকাশ নাম্বারে টাকা পাঠান:\n\n`01975080634`\n\nতারপর স্ক্রিনশট পাঠান",
-    reply_markup=menu)
-
+    reply_markup=menu,
+    parse_mode=" Markdown")
     bot.register_next_step_handler(message, get_bkash_ss)
 
 def get_bkash_ss(message):
