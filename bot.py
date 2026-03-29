@@ -475,7 +475,7 @@ def calculate_amount(message):
         bot.register_next_step_handler_by_chat_id(cid,calculate_amount)
         return
 
-    rate = 122.5 if amount < 3.5 else 123
+    rate = 123 if amount < 5 else 124
     total = int(amount * rate)
 
     user_amount[cid] = amount
@@ -858,7 +858,7 @@ def get_bkash_amount(message):
     menu.add(KeyboardButton("🔙 Back"))
 
     bot.send_message(cid,
-    "নিচের বিকাশ নাম্বারে টাকা পাঠান:\n\n`01975080634`\n\nতারপর স্ক্রিনশট পাঠান",
+    "নিচের বিকাশ (পার্সোনাল) নাম্বারে টাকা পাঠান:\n\nপার্সোনাল = `01975080634`\nএজেন্ট= `01326535117`\n\nতারপর স্ক্রিনশট পাঠান",
     reply_markup=menu,
     parse_mode="Markdown")
 
@@ -1010,7 +1010,7 @@ def get_nagad_amount(message):
 
     bot.send_message(
         cid,
-        "নিচের নগদ নাম্বারে টাকা পাঠান:\n\n`9856001086179441`\n\n তারপর স্ক্রিনশট পাঠান\n\nনাম্বার ঠিক আছে এটা ভার্চুয়াল নাম্বার তাই এমন। আপনি সেন্ড মানি করেন।",
+        "নিচের নগদ (পার্সোনাল অথবা এজেন্ট) নাম্বারে টাকা পাঠান:\n\nপার্সোনাল=`9856001086179441`\nএজেন্ট= `01326535117`\n\n তারপর স্ক্রিনশট পাঠান\n\nনাম্বার ঠিক আছে এটা ভার্চুয়াল নাম্বার তাই এমন। আপনি সেন্ড মানি করেন।",
         reply_markup=menu,
         parse_mode="Markdown"
     )
