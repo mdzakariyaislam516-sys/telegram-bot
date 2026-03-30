@@ -475,7 +475,7 @@ def calculate_amount(message):
         bot.register_next_step_handler_by_chat_id(cid,calculate_amount)
         return
 
-    rate = 123 if amount < 5 else 124
+    rate = 124 if amount < 5 else 125
     total = int(amount * rate)
 
     user_amount[cid] = amount
