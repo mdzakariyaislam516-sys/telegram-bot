@@ -9,6 +9,8 @@ ADMIN_ID = 7114259913
 PROOF_CHANNEL = -1003417566709
 bot = telebot.TeleBot(TOKEN)
 
+LOW_RATE = 124
+HIGH_RATE = 125
 pending_amount = {}
 user_amount = {}
 user_rate = {}
@@ -454,7 +456,7 @@ f"""❌ Payment Rejected
 
         bot.send_message(
             cid,
-            "👉ডলারের রেট জানতে আপনার ডলারের সঠিক পরিমাণ লিখুন\n\n⚠️ যেমনঃ 0.05, 0.5, 1, 2\n⚠️ শুধুমাত্র সংখ্যা লিখবেন",
+            "👉ডলারের রেট জানতে আপনার ডলারের পরিমাণ লিখুন\n\n⚠️ যেমনঃ 0.05, 0.5, 1, 2\n⚠️ শুধুমাত্র সংখ্যা লিখবেন",
             reply_markup=reply
         )
 
@@ -475,7 +477,10 @@ def calculate_amount(message):
         bot.register_next_step_handler_by_chat_id(cid,calculate_amount)
         return
 
-    rate = 124 if amount < 5 else 125
+    if amount < 5:
+        rate = LOW_RATE
+    else:
+        rate = HIGH_RATE
     total = int(amount * rate)
 
     user_amount[cid] = amount
@@ -858,7 +863,7 @@ def get_bkash_amount(message):
     menu.add(KeyboardButton("🔙 Back"))
 
     bot.send_message(cid,
-    "নিচের বিকাশ (পার্সোনাল) নাম্বারে টাকা পাঠান:\n\n `01975080634`\n\nতারপর স্ক্রিনশট পাঠান",
+    "নিচের বিকাশ (পার্সোনাল) নাম্বারে টাকা পাঠান:\n\nপার্সোনাল = `01975080634`\n\nতারপর স্ক্রিনশট পাঠান",
     reply_markup=menu,
     parse_mode="Markdown")
 
@@ -1010,7 +1015,7 @@ def get_nagad_amount(message):
 
     bot.send_message(
         cid,
-        "নিচের নগদ (পার্সোনাল) নাম্বারে টাকা পাঠান:\n\nপার্সোনাল=`9856001086179441`\nতারপর স্ক্রিনশট সেন্ড করুন\n\nনাম্বার ঠিক আছে এটা ভার্চুয়াল নাম্বার তাই এমন। আপনি সেন্ড মানি করেন।",
+        "নিচের নগদ (পার্সোনাল) নাম্বারে টাকা পাঠান:\n\nপার্সোনাল=`9856001086179441`\n\n তারপর স্ক্রিনশট পাঠান\n\nনাম্বার ঠিক আছে এটা ভার্চুয়াল নাম্বার তাই এমন। আপনি সেন্ড মানি করেন।",
         reply_markup=menu,
         parse_mode="Markdown"
     )
@@ -1119,6 +1124,35 @@ def get_bkash_number_from_nagad(message):
 
 # ================== ADMIN PANEL ==================
 
+@bot.message_handler(commands=['setrate'])
+def set_rate(message):
+
+    if message.chat.id != ADMIN_ID:
+        return
+
+    try:
+        text = message.text.split()
+
+        low = float(text[1])
+        high = float(text[2])
+
+        global LOW_RATE, HIGH_RATE
+        LOW_RATE = low
+        HIGH_RATE = high
+
+        bot.send_message(message.chat.id,
+        f"✅ Rate Updated\n\n< 5$ = {LOW_RATE}\n> 5$ = {HIGH_RATE}")
+
+    except:
+        bot.send_message(message.chat.id,
+        "❌ Format:\n/setrate 122.5 123")
+
+@bot.message_handler(commands=['rate'])
+def show_rate(message):
+
+    bot.send_message(message.chat.id,
+    f"📊 Current Rate\n\n< 5$ = {LOW_RATE}\n> 5$ = {HIGH_RATE}")
+
 @bot.message_handler(commands=['setoffer'])
 def set_offer(message):
 
@@ -1152,6 +1186,8 @@ def exrules(message):
 
 @bot.message_handler(func=lambda m: True, content_types=['text'])
 def track_users(message):
+    if message.text.startswith("/"):
+        return
     save_user(message.chat.id)
 
 # ================== RUN ==================
